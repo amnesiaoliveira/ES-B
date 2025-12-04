@@ -1,4 +1,3 @@
-// src/screens/app/client/HomeScreen.tsx
 import { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, FlatList, Image, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

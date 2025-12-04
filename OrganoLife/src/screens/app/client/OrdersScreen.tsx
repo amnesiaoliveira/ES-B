@@ -1,5 +1,3 @@
-// COLE ESSE MESMO CÓDIGO NOS 7 ARQUIVOS ACIMA (só muda o texto do título)
-
 import { View, Text, SafeAreaView } from 'react-native';
 
 export default function NomeDaTelaScreen() {

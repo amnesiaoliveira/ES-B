@@ -1,4 +1,3 @@
-// src/screens/auth/LoginScreen.tsx
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useState } from 'react';
 import { useStore } from '../../store/useStore';

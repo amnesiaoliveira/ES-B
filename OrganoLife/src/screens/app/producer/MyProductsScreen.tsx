@@ -1,4 +1,3 @@
-// src/screens/app/producer/MyProductsScreen.tsx
 import { View, Text, SafeAreaView, FlatList, Image, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../../store/useStore';

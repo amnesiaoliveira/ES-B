@@ -8,7 +8,7 @@ export interface Produto {
   descricao: string;
   preco: number;
   quantidade: number;
-  imagem: string; // base64
+  imagem: string;
   produtorId: string;
   produtorNome: string;
 }
