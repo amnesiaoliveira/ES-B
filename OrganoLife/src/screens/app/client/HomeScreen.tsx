@@ -8,7 +8,6 @@ export default function HomeScreen() {
   const [busca, setBusca] = useState('');
   const [filtroPreco, setFiltroPreco] = useState<'todos' | 'barato' | 'medio' | 'caro'>('todos');
 
-  // Filtra produtos com base na busca e no filtro de preço
   const produtosFiltrados = produtos.filter(produto => {
     const nomeMatch = produto.nome.toLowerCase().includes(busca.toLowerCase());
     const descMatch = produto.descricao?.toLowerCase().includes(busca.toLowerCase()) || false;
