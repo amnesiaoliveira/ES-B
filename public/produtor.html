@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Produtor - OrganoLife</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Esconde abas inativas */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        /* Estilo do botão ativo */
+        .nav-btn.active { background-color: #dcfce7; color: #166534; border-right: 4px solid #166534; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex">
+
+    <!-- SIDEBAR (Menu Lateral) -->
+    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-10 shadow-sm">
+        <div class="p-6 border-b border-gray-100">
+            <h1 class="text-2xl font-bold text-green-700 flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+                <i data-lucide="tractor"></i> OrganoLife
+            </h1>
+            <p class="text-xs text-gray-500 mt-1 pl-1">Painel do Produtor</p>
+        </div>
+        
+        <nav class="flex-grow p-4 space-y-2 mt-2">
+            <button onclick="switchTab('produtos')" id="nav-produtos" class="nav-btn active w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
+                <i data-lucide="package"></i> Meus Produtos
+            </button>
+            <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
+                <i data-lucide="shopping-bag"></i> Pedidos
+            </button>
+            <button onclick="switchTab('avaliacoes')" id="nav-avaliacoes" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
+                <i data-lucide="star"></i> Avaliações
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-800 font-bold border border-green-300">
+                    <i data-lucide="user"></i>
+                </div>
+                <div>
+                    <p id="userName" class="text-sm font-bold text-gray-800">Carregando...</p>
+                    <p class="text-xs text-green-600 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Online</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 shadow-sm">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Sair
+            </button>
+        </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
+        
+        <!-- HEADER MOBILE (Só aparece em telas pequenas) -->
+        <div class="md:hidden flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <h1 class="text-xl font-bold text-green-700 flex items-center gap-2"><i data-lucide="leaf"></i> OrganoLife</h1>
+            <button onclick="logout()" class="text-red-500 bg-red-50 p-2 rounded-full"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+        </div>
+
+        <!-- ABA 1: GERENCIAR PRODUTOS -->
+        <div id="tab-produtos" class="tab-content active fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Gerenciar Estoque</h2>
+                    <p class="text-gray-500 text-sm">Adicione ou remova produtos da feira.</p>
+                </div>
+                <button onclick="toggleForm()" class="bg-green-600 text-white px-5 py-2.5 rounded-lg shadow-lg hover:bg-green-700 flex items-center gap-2 transition hover:scale-105">
+                    <i data-lucide="plus-circle"></i> Novo Produto
+                </button>
+            </div>
+
+            <!-- Formulário de Cadastro (Inicia Oculto) -->
+            <div id="productFormContainer" class="hidden mb-8 bg-white p-6 rounded-xl shadow-xl border border-green-100 ring-1 ring-green-50">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+                    <h3 class="font-bold text-lg text-green-800 flex items-center gap-2"><i data-lucide="sprout"></i> Cadastrar Alimento</h3>
+                    <button onclick="toggleForm()" class="text-gray-400 hover:text-red-500 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+                <form onsubmit="handleCreateProduct(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Produto</label>
+                        <input type="text" id="prodNome" placeholder="Ex: Alface Americana" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Preço (R$)</label>
+                            <input type="number" id="prodPreco" step="0.01" placeholder="0.00" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
+                            <input type="number" id="prodQtd" placeholder="0" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Imagem do Produto</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label for="prodImg" class="flex flex-col items-center justify-center w-full h-32 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <i data-lucide="upload-cloud" class="w-8 h-8 text-green-500 mb-2"></i>
+                                    <p class="text-sm text-gray-500"><span class="font-semibold">Clique para enviar</span> uma foto</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG (MAX. 5MB)</p>
+                                </div>
+                                <input id="prodImg" type="file" accept="image/*" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                        <textarea id="prodDesc" placeholder="Descreva a origem, tipo de cultivo, etc..." class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="md:col-span-2 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold shadow-md transition transform active:scale-95">Salvar Produto</button>
+                </form>
+            </div>
+
+            <!-- Lista de Produtos -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Produto</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Preço</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estoque</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="producerProductList" class="bg-white divide-y divide-gray-200">
+                        <!-- Itens inseridos via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA 2: PEDIDOS RECEBIDOS -->
+        <div id="tab-pedidos" class="tab-content fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Pedidos Recebidos</h2>
+                    <p class="text-gray-500 text-sm">Acompanhe as vendas realizadas.</p>
+                </div>
+                <!-- Botão de Debug para gerar dados falsos (Para testes) -->
+                <button onclick="generateTestOrder()" class="text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded hover:bg-blue-100 transition border border-blue-200">
+                    + Gerar Pedido Teste
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Pedido #</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Itens</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList" class="bg-white divide-y divide-gray-200">
+                            <!-- Pedidos via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 3: AVALIAÇÕES -->
+        <div id="tab-avaliacoes" class="tab-content fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Feedback dos Clientes</h2>
+            
+            <div id="reviewsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards de Avaliação via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        // 1. Verificar Login
+        const currentUser = JSON.parse(localStorage.getItem('organoUser'));
+        if (!currentUser || currentUser.perfil !== 'produtor') {
+            window.location.href = 'login.html';
+        }
+        document.getElementById('userName').innerText = currentUser.nome;
+
+        // --- INICIALIZAÇÃO ---
+        // Carrega os dados assim que abre a página
+        loadProducerProducts();
+        loadOrders();
+        loadReviews();
+        lucide.createIcons();
+
+        // --- SISTEMA DE ABAS ---
+        function switchTab(tabName) {
+            // Esconde todas as abas
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Remove estilo ativo dos botões
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            // Ativa a aba selecionada
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById(`nav-${tabName}`).classList.add('active');
+            
+            // Recarrega ícones (para casos de bug visual)
+            lucide.createIcons();
+        }
+
+        function toggleForm() {
+            const form = document.getElementById('productFormContainer');
+            form.classList.toggle('hidden');
+            if(!form.classList.contains('hidden')) form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function logout() {
+            if(confirm("Deseja realmente sair?")) {
+                localStorage.removeItem('organoUser');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // --- FUNÇÕES DE PRODUTOS ---
+        async function handleCreateProduct(e) {
+            e.preventDefault();
+            
+            // Usando FormData para enviar arquivo + texto
+            const formData = new FormData();
+            formData.append('nome', document.getElementById('prodNome').value);
+            formData.append('preco', document.getElementById('prodPreco').value);
+            formData.append('quantidade', document.getElementById('prodQtd').value);
+            formData.append('descricao', document.getElementById('prodDesc').value);
+            formData.append('produtor_id', currentUser.id);
+            
+            const file = document.getElementById('prodImg').files[0];
+            if (file) formData.append('imagem', file);
+
+            try {
+                const res = await fetch(`${API_URL}/produtos`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    alert('Produto cadastrado com sucesso!');
+                    e.target.reset();
+                    toggleForm();
+                    loadProducerProducts();
+                } else {
+                    alert('Erro ao salvar produto.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Erro de conexão.');
+            }
+        }
+
+        async function loadProducerProducts() {
+            const res = await fetch(`${API_URL}/produtos`);
+            const prods = await res.json();
+            // Filtra apenas produtos deste produtor
+            const myProds = prods.filter(p => p.produtor_id === currentUser.id);
+            
+            const tbody = document.getElementById('producerProductList');
+            if(myProds.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400">Você ainda não tem produtos cadastrados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = myProds.map(p => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 flex items-center gap-4">
+                        <img src="${p.imagem}" class="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm" onerror="this.src='https://via.placeholder.com/50'">
+                        <div>
+                            <span class="block font-bold text-gray-800">${p.nome}</span>
+                            <span class="text-xs text-gray-500 truncate max-w-[150px] block">${p.descricao || ''}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-green-700 font-bold">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</td>
+                    <td class="px-6 py-4 font-medium">${p.quantidade} un</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Ativo</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- FUNÇÕES DE PEDIDOS ---
+        async function loadOrders() {
+            try {
+                const res = await fetch(`${API_URL}/produtor/${currentUser.id}/pedidos`);
+                const pedidos = await res.json();
+                
+                const tbody = document.getElementById('ordersList');
+                if(pedidos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Nenhum pedido recebido ainda.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = pedidos.map(p => {
+                    const total = p.quantidade * p.preco_unitario;
+                    const date = new Date(p.data_pedido).toLocaleDateString('pt-BR');
+                    
+                    return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            <span class="font-bold text-gray-800">#${p.pedido_id}</span><br>
+                            <span class="text-xs">${date}</span>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-800">${p.cliente_nome}</td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm">
+                                <span class="font-bold">${p.produto_nome}</span>
+                                <span class="text-xs text-gray-500 ml-1">(x${p.quantidade})</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-green-700">R$ ${total.toFixed(2).replace('.', ',')}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold border border-yellow-200">
+                                ${p.status}
+                            </span>
+                        </td>
+                    </tr>
+                `}).join('');
+            } catch(err) {
+                console.error("Erro ao carregar pedidos:", err);
+            }
+        }
+
+        // --- FUNÇÕES DE AVALIAÇÕES ---
+        async function loadReviews() {
+            try {
+                const res = await fetch(`${API_URL}/produtor/${currentUser.id}/avaliacoes`);
+                const reviews = await res.json();
+                
+                const grid = document.getElementById('reviewsGrid');
+                if(reviews.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center p-10 bg-white rounded-xl border border-dashed border-gray-300 text-gray-400">
+                            <i data-lucide="message-square-off" class="w-10 h-10 mb-2"></i>
+                            <p>Ainda não há avaliações para seus produtos.</p>
+                        </div>`;
+                    lucide.createIcons();
+                    return;
+                }
+
+                grid.innerHTML = reviews.map(r => {
+                    // Gera estrelas
+                    const stars = Array(5).fill(0).map((_, i) => 
+                        `<i data-lucide="star" class="w-4 h-4 ${i < r.nota ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}"></i>`
+                    ).join('');
+
+                    return `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <div class="flex items-start gap-4 mb-4">
+                            <img src="${r.produto_imagem}" class="w-14 h-14 rounded-lg object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/50'">
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">${r.produto_nome}</h4>
+                                <div class="flex items-center gap-1 mt-1">
+                                    ${stars}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative pl-4 border-l-4 border-gray-200 italic text-gray-600 text-sm mb-4">
+                            "${r.comentario}"
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-gray-400 pt-4 border-t border-gray-50">
+                            <span class="font-medium flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> ${r.cliente_nome}</span>
+                            <span>${new Date(r.data_avaliacao).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `}).join('');
+                
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Erro ao carregar avaliações:", err);
+            }
+        }
+
+        // --- FUNÇÃO DE TESTE (DEBUG) ---
+        async function generateTestOrder() {
+            if(confirm("Isso criará um Pedido e uma Avaliação falsos para teste. Continuar?")) {
+                await fetch(`${API_URL}/debug/seed-orders`, { method: 'POST' });
+                // Recarrega as listas
+                loadOrders();
+                loadReviews();
+                alert("Dados de teste gerados com sucesso!");
+            }
+        }
+    </script>
+</body>
+</html>

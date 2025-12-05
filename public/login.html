@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - OrganoLife</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .hidden-section { display: none; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-green-50 text-gray-800 font-sans min-h-screen flex flex-col justify-center items-center">
+
+    <div class="mb-8 text-center">
+        <h1 class="text-4xl font-bold text-green-800 flex items-center justify-center gap-2">
+            <i data-lucide="leaf" class="w-10 h-10"></i> OrganoLife
+        </h1>
+        <p class="text-gray-600">Sistema Local de Produtos Orgânicos</p>
+    </div>
+
+    <div class="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden fade-in border border-green-100">
+        <!-- Abas -->
+        <div class="flex border-b">
+            <button onclick="toggleAuth('login')" id="tabLogin" class="w-1/2 py-4 font-bold text-green-700 border-b-2 border-green-600 bg-green-50 transition-colors">Entrar</button>
+            <button onclick="toggleAuth('register')" id="tabRegister" class="w-1/2 py-4 font-medium text-gray-500 hover:text-green-600 transition-colors">Criar Conta</button>
+        </div>
+
+        <div class="p-8">
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Acesse sua conta</h2>
+                <input type="email" id="loginEmail" placeholder="E-mail" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="password" id="loginSenha" placeholder="Senha" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md transition transform hover:scale-[1.02]">
+                    Entrar
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden-section">
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Novo Cadastro</h2>
+                <input type="text" id="regNome" placeholder="Nome Completo" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="regTelefone" placeholder="Telefone" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                    <select id="regPerfil" class="w-full p-3 border rounded-lg bg-white focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="cliente">Consumidor</option>
+                        <option value="produtor">Produtor Rural</option>
+                    </select>
+                </div>
+                <input type="email" id="regEmail" placeholder="E-mail" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="password" id="regSenha" placeholder="Senha" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform hover:scale-[1.02]">
+                    Cadastrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        lucide.createIcons();
+
+        // Verifica se já está logado
+        const savedUser = JSON.parse(localStorage.getItem('organoUser'));
+        if (savedUser) {
+            redirectUser(savedUser);
+        }
+
+        function redirectUser(user) {
+            if (user.perfil === 'produtor') {
+                window.location.href = 'produtor.html';
+            } else {
+                window.location.href = 'consumidor.html';
+            }
+        }
+
+        function toggleAuth(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabReg = document.getElementById('tabRegister');
+
+            if (mode === 'login') {
+                loginForm.classList.remove('hidden-section');
+                regForm.classList.add('hidden-section');
+                tabLogin.className = "w-1/2 py-4 font-bold text-green-700 border-b-2 border-green-600 bg-green-50";
+                tabReg.className = "w-1/2 py-4 font-medium text-gray-500 hover:text-green-600";
+            } else {
+                loginForm.classList.add('hidden-section');
+                regForm.classList.remove('hidden-section');
+                tabReg.className = "w-1/2 py-4 font-bold text-blue-700 border-b-2 border-blue-600 bg-blue-50";
+                tabLogin.className = "w-1/2 py-4 font-medium text-gray-500 hover:text-green-600";
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('organoUser', JSON.stringify(data.user));
+                    redirectUser(data.user);
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Erro ao conectar com o servidor local.');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const userData = {
+                nome: document.getElementById('regNome').value,
+                email: document.getElementById('regEmail').value,
+                telefone: document.getElementById('regTelefone').value,
+                senha: document.getElementById('regSenha').value,
+                tipo_perfil: document.getElementById('regPerfil').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Conta criada com sucesso! Faça login.');
+                    toggleAuth('login');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+            }
+        }
+    </script>
+</body>
+</html>
