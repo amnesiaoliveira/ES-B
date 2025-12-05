@@ -56,10 +56,7 @@ A demanda crescente por produtos orgânicos e a necessidade de valorizar os pequ
 | RF13 | Comprar Produto | Direcionar o cliente para criação de pedido ao clicar em comprar. |
 | RF14 | Registro de Pedido | Registrar pedido contendo cliente, produto e quantidade. |
 | RF15 | Status Inicial do Pedido | Definir “Aguardando confirmação” como status inicial. |
-| RF16 | Atualização de Status | Permitir que o produtor atualize o status do pedido. |
-| RF17 | Acompanhamento de Pedido | Cliente pode visualizar atualizações do pedido. |
-| RF18 | Notificações ao Cliente | Atualizações do pedido exibidas quando o cliente acessa a página. |
-| RF19 | Notificações ao Produtor | Exibição de novos pedidos quando o produtor acessa o painel. |
+| RF16 | Notificações ao Produtor | Exibição de novos pedidos quando o produtor acessa o painel. |
 
 ---
 
