@@ -48,15 +48,14 @@ A demanda crescente por produtos orgânicos e a necessidade de valorizar os pequ
 | RF05 | Controle de Sessão | Manter sessão ativa para usuários autenticados. |
 | RF06 | Cadastro de Produtos | Permitir que produtores cadastrem nome, descrição, preço, quantidade e imagem. |
 | RF07 | Upload de Imagens | Enviar imagens via multer e armazenar em `/public/uploads`. |
-| RF08 | Edição de Produtos | Permitir que produtores editem produtos cadastrados. |
-| RF09 | Exclusão de Produtos | Permitir que produtores excluam produtos cadastrados. |
-| RF10 | Listagem de Produtos do Produtor | Exibir apenas produtos vinculados ao produtor logado. |
-| RF11 | Catálogo de Produtos | Listar todos os produtos disponíveis para o cliente. |
-| RF12 | Exibição de Imagens | Mostrar imagens armazenadas no servidor junto aos produtos. |
-| RF13 | Comprar Produto | Direcionar o cliente para criação de pedido ao clicar em comprar. |
-| RF14 | Registro de Pedido | Registrar pedido contendo cliente, produto e quantidade. |
-| RF15 | Status Inicial do Pedido | Definir “Aguardando confirmação” como status inicial. |
-| RF16 | Notificações ao Produtor | Exibição de novos pedidos quando o produtor acessa o painel. |
+| RF08 | Exclusão de Produtos | Permitir que produtores excluam produtos cadastrados. |
+| RF9 | Listagem de Produtos do Produtor | Exibir apenas produtos vinculados ao produtor logado. |
+| RF10 | Catálogo de Produtos | Listar todos os produtos disponíveis para o cliente. |
+| RF11 | Exibição de Imagens | Mostrar imagens armazenadas no servidor junto aos produtos. |
+| RF12 | Comprar Produto | Direcionar o cliente para criação de pedido ao clicar em comprar. |
+| RF13 | Registro de Pedido | Registrar pedido contendo cliente, produto e quantidade. |
+| RF14 | Status Inicial do Pedido | Definir “Aguardando confirmação” como status inicial. |
+| RF15 | Notificações ao Produtor | Exibição de novos pedidos quando o produtor acessa o painel. |
 
 ---
 
