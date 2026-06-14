@@ -33,7 +33,12 @@
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Acesse sua conta</h2>
                 <input type="email" id="loginEmail" placeholder="E-mail" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
-                <input type="password" id="loginSenha" placeholder="Senha" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <div class="relative">
+                    <input type="password" id="loginSenha" placeholder="Senha" required class="w-full p-3 pr-12 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                    <button type="button" onclick="togglePassword('loginSenha', this)" class="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-green-700" aria-label="Mostrar senha" title="Mostrar senha">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                </div>
                 <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md transition transform hover:scale-[1.02]">
                     Entrar
                 </button>
@@ -42,7 +47,10 @@
             <!-- Register Form -->
             <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden-section">
                 <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Novo Cadastro</h2>
-                <input type="text" id="regNome" placeholder="Nome Completo" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <div>
+                    <input type="text" id="regNome" minlength="6" placeholder="Nome Completo" required oninput="validateRegistrationField('name')" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                    <p id="nameRequirement" class="text-xs text-gray-500 mt-1 flex items-center gap-1"><i data-lucide="circle" class="w-3 h-3"></i> Nome com pelo menos 6 caracteres</p>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <input type="text" id="regTelefone" placeholder="Telefone" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     <select id="regPerfil" class="w-full p-3 border rounded-lg bg-white focus:ring-2 focus:ring-green-500 outline-none">
@@ -51,7 +59,13 @@
                     </select>
                 </div>
                 <input type="email" id="regEmail" placeholder="E-mail" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
-                <input type="password" id="regSenha" placeholder="Senha" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <div class="relative">
+                    <input type="password" id="regSenha" minlength="6" placeholder="Senha" required oninput="validateRegistrationField('password')" class="w-full p-3 pr-12 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                    <button type="button" onclick="togglePassword('regSenha', this)" class="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-blue-700" aria-label="Mostrar senha" title="Mostrar senha">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <p id="passwordRequirement" class="text-xs text-gray-500 -mt-3 flex items-center gap-1"><i data-lucide="circle" class="w-3 h-3"></i> Senha com pelo menos 6 caracteres</p>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform hover:scale-[1.02]">
                     Cadastrar
                 </button>
@@ -59,13 +73,13 @@
         </div>
     </div>
 
+    <script src="js/api.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
         lucide.createIcons();
 
         // Verifica se já está logado
         const savedUser = JSON.parse(localStorage.getItem('organoUser'));
-        if (savedUser) {
+        if (savedUser && getAuthToken()) {
             redirectUser(savedUser);
         }
 
@@ -96,13 +110,39 @@
             }
         }
 
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            button.innerHTML = `<i data-lucide="${showing ? 'eye' : 'eye-off'}" class="w-5 h-5"></i>`;
+            button.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+            button.title = showing ? 'Mostrar senha' : 'Ocultar senha';
+            lucide.createIcons();
+        }
+
+        function validateRegistrationField(field) {
+            const isName = field === 'name';
+            const input = document.getElementById(isName ? 'regNome' : 'regSenha');
+            const requirement = document.getElementById(isName ? 'nameRequirement' : 'passwordRequirement');
+            const valid = input.value.trim().length >= 6;
+            input.classList.toggle('border-green-500', valid);
+            input.classList.toggle('ring-1', valid);
+            input.classList.toggle('ring-green-500', valid);
+            requirement.className = `text-xs mt-1 flex items-center gap-1 ${valid ? 'text-green-600 font-bold' : 'text-gray-500'}`;
+            requirement.innerHTML = valid
+                ? '<i data-lucide="circle-check" class="w-4 h-4"></i> OK, requisito cumprido'
+                : `<i data-lucide="circle" class="w-3 h-3"></i> ${isName ? 'Nome' : 'Senha'} com pelo menos 6 caracteres`;
+            lucide.createIcons();
+            return valid;
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const senha = document.getElementById('loginSenha').value;
 
             try {
-                const res = await fetch(`${API_URL}/login`, {
+                const res = await apiFetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, senha })
@@ -110,7 +150,7 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    localStorage.setItem('organoUser', JSON.stringify(data.user));
+                    saveSession(data.token, data.user);
                     redirectUser(data.user);
                 } else {
                     alert(data.message);
@@ -122,6 +162,12 @@
 
         async function handleRegister(e) {
             e.preventDefault();
+            const validName = validateRegistrationField('name');
+            const validPassword = validateRegistrationField('password');
+            if (!validName || !validPassword) {
+                alert('O nome e a senha precisam ter pelo menos 6 caracteres.');
+                return;
+            }
             const userData = {
                 nome: document.getElementById('regNome').value,
                 email: document.getElementById('regEmail').value,
@@ -131,7 +177,7 @@
             };
 
             try {
-                const res = await fetch(`${API_URL}/register`, {
+                const res = await apiFetch('/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
@@ -148,6 +194,7 @@
                 alert('Erro de conexão.');
             }
         }
+
     </script>
 </body>
 </html>

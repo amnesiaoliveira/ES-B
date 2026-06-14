@@ -16,6 +16,8 @@
         .tab-content.active { display: block; }
         /* Botão de navegação ativo */
         .nav-btn.active { background-color: #dcfce7; color: #166534; border-right: 4px solid #166534; }
+        .carousel-track { scrollbar-width: none; scroll-behavior: smooth; }
+        .carousel-track::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-green-50 text-gray-800 font-sans min-h-screen flex">
@@ -42,6 +44,15 @@
             <!-- Botão Pedidos -->
             <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
                 <i data-lucide="package-check"></i> Meus Pedidos
+            </button>
+            <button onclick="switchTab('receitas')" id="nav-receitas" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
+                <i data-lucide="book-open"></i> Receitas
+            </button>
+            <button onclick="switchTab('favoritos')" id="nav-favoritos" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
+                <i data-lucide="heart"></i> Favoritos
+            </button>
+            <button onclick="switchTab('chat')" id="nav-chat" class="nav-btn w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 hover:bg-gray-50 transition text-gray-600 font-medium">
+                <i data-lucide="messages-square"></i> Conversas
             </button>
         </nav>
 
@@ -71,9 +82,17 @@
                 <span id="cartCountMobile" class="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
             </button>
         </div>
+        <div class="md:hidden grid grid-cols-5 gap-1.5 mb-6">
+            <button onclick="switchTab('feira')" class="bg-white border rounded-xl py-2 text-[10px] font-bold text-green-700 flex flex-col items-center gap-1"><i data-lucide="store" class="w-5 h-5"></i><span>Feira</span></button>
+            <button onclick="switchTab('pedidos')" class="bg-white border rounded-xl py-2 text-[10px] font-bold text-green-700 flex flex-col items-center gap-1"><i data-lucide="package-check" class="w-5 h-5"></i><span>Pedidos</span></button>
+            <button onclick="switchTab('receitas')" class="bg-white border rounded-xl py-2 text-[10px] font-bold text-green-700 flex flex-col items-center gap-1"><i data-lucide="book-open" class="w-5 h-5"></i><span>Receitas</span></button>
+            <button onclick="switchTab('favoritos')" class="bg-white border rounded-xl py-2 text-[10px] font-bold text-green-700 flex flex-col items-center gap-1"><i data-lucide="heart" class="w-5 h-5"></i><span>Favoritos</span></button>
+            <button onclick="switchTab('chat')" class="bg-white border rounded-xl py-2 text-[10px] font-bold text-green-700 flex flex-col items-center gap-1"><i data-lucide="messages-square" class="w-5 h-5"></i><span>Chat</span></button>
+        </div>
 
         <!-- ABA 1: FEIRA (CATÁLOGO) -->
         <div id="tab-feira" class="tab-content active fade-in">
+            <div id="notificationsBox" class="mb-6 hidden bg-white border border-blue-100 rounded-xl p-4 shadow-sm"></div>
             <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2 class="text-3xl font-bold text-green-900">Produtos Fresquinhos</h2>
@@ -87,6 +106,22 @@
                     <input type="text" id="searchInput" onkeyup="filterCatalog()" class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-green-500 focus:border-green-500 shadow-sm" placeholder="Buscar frutas, verduras, legumes...">
                 </div>
             </header>
+
+            <section class="mb-10 bg-gradient-to-br from-green-800 to-emerald-600 rounded-2xl p-5 md:p-7 text-white shadow-lg overflow-hidden">
+                <div class="flex items-center justify-between mb-5">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-green-100 font-bold">Preferidos da comunidade</span>
+                        <h3 class="text-2xl font-bold mt-1">Produtos em alta</h3>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="movePopularCarousel(-1)" class="p-2 rounded-full bg-white/15 hover:bg-white/25" aria-label="Voltar"><i data-lucide="chevron-left"></i></button>
+                        <button onclick="movePopularCarousel(1)" class="p-2 rounded-full bg-white/15 hover:bg-white/25" aria-label="Avançar"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+                <div id="popularCarousel" class="carousel-track flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2">
+                    <p class="text-green-100">Carregando destaques...</p>
+                </div>
+            </section>
 
             <!-- Grid de Produtos -->
             <div id="catalogGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -131,6 +166,22 @@
                         <span>Total</span>
                         <span id="cartTotal">R$ 0,00</span>
                     </div>
+                    <div class="border-t pt-4 mb-5">
+                        <p class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Endereço de entrega</p>
+                        <div class="space-y-2">
+                            <div class="grid grid-cols-2 gap-2"><input id="deliveryCep" maxlength="9" placeholder="CEP" class="w-full border rounded-lg p-2 text-sm"><input id="deliveryEstado" maxlength="2" placeholder="UF" class="w-full border rounded-lg p-2 text-sm uppercase"></div>
+                            <input id="deliveryRua" placeholder="Rua / Avenida" class="w-full border rounded-lg p-2 text-sm">
+                            <div class="grid grid-cols-2 gap-2"><input id="deliveryNumero" placeholder="Número" class="w-full border rounded-lg p-2 text-sm"><input id="deliveryComplemento" placeholder="Complemento" class="w-full border rounded-lg p-2 text-sm"></div>
+                            <div class="grid grid-cols-2 gap-2"><input id="deliveryBairro" placeholder="Bairro" class="w-full border rounded-lg p-2 text-sm"><input id="deliveryCidade" placeholder="Cidade" class="w-full border rounded-lg p-2 text-sm"></div>
+                            <p id="addressStatus" class="text-xs text-orange-600">Carregando endereço...</p>
+                        </div>
+                    </div>
+                    <div class="border-t pt-4 mb-5">
+                        <p class="text-sm font-bold text-gray-700 mb-3">Pagamento por produtor</p>
+                        <div id="paymentGroups" class="space-y-4">
+                            <p class="text-xs text-gray-500">Adicione produtos para escolher os pagamentos.</p>
+                        </div>
+                    </div>
                     <button onclick="checkout()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-md transition transform hover:scale-105 active:scale-95">
                         Finalizar Compra
                     </button>
@@ -147,6 +198,58 @@
             <div id="ordersContainer" class="space-y-4">
                 <!-- Lista de Pedidos via JS -->
                 <p class="text-gray-500">Carregando seus pedidos...</p>
+            </div>
+        </div>
+
+        <!-- ABA 4: RECEITAS -->
+        <div id="tab-receitas" class="tab-content fade-in">
+            <header class="mb-7">
+                <h2 class="text-3xl font-bold text-green-900">Receitas da comunidade</h2>
+                <p class="text-gray-600">Compartilhe ideias e descubra novos jeitos de aproveitar produtos frescos.</p>
+            </header>
+            <div class="grid lg:grid-cols-[360px_1fr] gap-7 items-start">
+                <form id="recipeForm" onsubmit="submitRecipe(event)" class="bg-white rounded-2xl border border-green-100 shadow-sm p-6 lg:sticky lg:top-4">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="p-2.5 bg-orange-100 text-orange-700 rounded-xl"><i data-lucide="chef-hat"></i></div>
+                        <div><h3 class="font-bold text-lg">Compartilhar receita</h3><p class="text-xs text-gray-500">Conte para a comunidade como você prepara.</p></div>
+                    </div>
+                    <label class="block text-sm font-bold mb-1">Título</label>
+                    <input id="recipeTitle" maxlength="120" required class="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Ex.: Salada colorida da feira">
+                    <label class="block text-sm font-bold mb-1">Descrição curta</label>
+                    <textarea id="recipeDescription" required class="w-full border rounded-lg p-3 mb-4 h-20 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Conte um pouco sobre a receita"></textarea>
+                    <label class="block text-sm font-bold mb-1">Ingredientes</label>
+                    <textarea id="recipeIngredients" required class="w-full border rounded-lg p-3 mb-4 h-32 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Um ingrediente por linha"></textarea>
+                    <label class="block text-sm font-bold mb-1">Modo de preparo</label>
+                    <textarea id="recipePreparation" required class="w-full border rounded-lg p-3 mb-5 h-36 focus:ring-2 focus:ring-green-500 outline-none" placeholder="Descreva o passo a passo"></textarea>
+                    <label class="block text-sm font-bold mb-2">Produtos usados</label>
+                    <div id="recipeProductOptions" class="max-h-40 overflow-y-auto border rounded-lg p-3 mb-5 space-y-2 text-sm"></div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-sm transition">Publicar receita</button>
+                </form>
+                <div id="recipesContainer" class="grid xl:grid-cols-2 gap-5">
+                    <p class="text-gray-500">Carregando receitas...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-favoritos" class="tab-content fade-in">
+            <h2 class="text-3xl font-bold text-green-900 mb-2">Meus favoritos</h2>
+            <p class="text-gray-600 mb-7">Seus produtos preferidos reunidos em um só lugar.</p>
+            <div id="favoritesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </div>
+
+        <div id="tab-chat" class="tab-content fade-in">
+            <h2 class="text-3xl font-bold text-green-900 mb-2">Conversas</h2>
+            <p class="text-gray-600 mb-6">Tire dúvidas diretamente com os produtores.</p>
+            <div class="bg-white border rounded-2xl shadow-sm overflow-hidden grid md:grid-cols-[280px_1fr] min-h-[520px]">
+                <div class="border-r bg-gray-50 p-3"><div id="chatList" class="space-y-2"><p class="text-sm text-gray-400 p-3">Carregando...</p></div></div>
+                <div class="flex flex-col min-w-0">
+                    <div id="chatHeader" class="p-4 border-b font-bold text-gray-700">Selecione uma conversa</div>
+                    <div id="chatMessages" class="flex-1 p-4 space-y-3 overflow-y-auto max-h-[400px]"><p class="text-center text-gray-400 mt-20">Escolha um produtor para conversar.</p></div>
+                    <form onsubmit="sendChatMessage(event)" class="p-3 border-t flex gap-2">
+                        <input id="chatInput" maxlength="1000" class="flex-1 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500" placeholder="Digite sua mensagem..." disabled>
+                        <button id="chatSendButton" class="bg-green-600 text-white px-4 rounded-lg font-bold disabled:opacity-40" disabled><i data-lucide="send"></i></button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -188,21 +291,28 @@
         </div>
     </div>
 
+    <script src="js/api.js"></script>
     <script>
-        const API_URL = 'http://localhost:3000/api';
         let cart = []; // Carrinho local (memória)
         let allProducts = []; // Para busca local
+        let favoriteIds = new Set();
+        let activeConversationId = null;
         
         // --- AUTH ---
         const currentUser = JSON.parse(localStorage.getItem('organoUser'));
-        if (!currentUser || currentUser.perfil !== 'cliente') {
+        if (!currentUser || !getAuthToken() || currentUser.perfil !== 'cliente') {
             window.location.href = 'login.html';
+            throw new Error('Sessao de cliente obrigatoria.');
         }
         document.getElementById('userName').innerText = currentUser.nome;
 
         // --- INICIALIZAÇÃO ---
-        loadCatalog();
+        loadFavorites().catch(console.error).finally(loadCatalog);
         loadOrders();
+        loadRecipes();
+        loadNotifications();
+        loadChats();
+        loadDeliveryAddress();
         lucide.createIcons();
 
         // --- SISTEMA DE ABAS ---
@@ -218,7 +328,7 @@
 
         function logout() {
             if(confirm('Tem certeza que deseja sair?')) {
-                localStorage.removeItem('organoUser');
+                apiFetch('/logout', { method: 'POST' }).finally(clearSession);
                 window.location.href = 'login.html';
             }
         }
@@ -226,13 +336,55 @@
         // --- CATÁLOGO ---
         async function loadCatalog() {
             try {
-                const res = await fetch(`${API_URL}/produtos`);
-                allProducts = await res.json();
+                const res = await apiFetch('/produtos');
+                allProducts = (await res.json()).map(product => ({
+                    ...product,
+                    id: Number(product.id),
+                    produtor_id: Number(product.produtor_id)
+                }));
                 renderCatalog(allProducts);
+                renderPopularProducts(allProducts);
+                renderFavoriteProducts();
+                renderRecipeProductOptions();
             } catch(e) { 
                 console.error(e);
                 document.getElementById('catalogGrid').innerHTML = '<p class="text-red-500 col-span-full text-center">Erro ao carregar produtos. Verifique se o servidor está rodando.</p>';
             }
+        }
+
+        function renderPopularProducts(products) {
+            const carousel = document.getElementById('popularCarousel');
+            const popular = [...products]
+                .sort((a, b) => Number(b.total_vendido) - Number(a.total_vendido)
+                    || Number(b.media_avaliacao || 0) - Number(a.media_avaliacao || 0))
+                .slice(0, 8);
+
+            if (!popular.length) {
+                carousel.innerHTML = '<p class="text-green-100">Os destaques aparecerão quando houver produtos cadastrados.</p>';
+                return;
+            }
+
+            carousel.innerHTML = popular.map((product, index) => `
+                <article class="min-w-[260px] md:min-w-[310px] bg-white text-gray-800 rounded-xl overflow-hidden snap-start shadow-md flex">
+                    <img src="${escapeHtml(product.imagem)}" class="w-28 md:w-32 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/180?text=Produto'">
+                    <div class="p-4 flex-1 min-w-0">
+                        <div class="flex justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold text-orange-600">#${index + 1} em alta</span>
+                            <span class="text-xs text-gray-500">${Number(product.total_vendido)} vendidos</span>
+                        </div>
+                        <h4 class="font-bold truncate">${escapeHtml(product.nome)}</h4>
+                        <p class="text-xs text-gray-500 mt-1 truncate">por ${escapeHtml(product.produtor_nome)}</p>
+                        <div class="flex items-center justify-between mt-4">
+                            <strong class="text-green-700">R$ ${Number(product.preco).toFixed(2).replace('.', ',')}</strong>
+                            <button onclick="addToCartById(${product.id})" class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700" title="Adicionar ao carrinho"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </article>`).join('');
+            lucide.createIcons();
+        }
+
+        function movePopularCarousel(direction) {
+            document.getElementById('popularCarousel').scrollBy({ left: direction * 330, behavior: 'smooth' });
         }
 
         function renderCatalog(produtos) {
@@ -251,9 +403,9 @@
             grid.innerHTML = produtos.map(p => {
                 // Simulação de Rating (Média visual) já que o backend não fornece
                 // Gera um número aleatório entre 4.0 e 5.0 para demo, ou mostra "Novo" se ID for alto
-                const hasRating = p.id % 3 !== 0; // Exemplo de lógica
-                const ratingVal = hasRating ? (4 + Math.random()).toFixed(1) : null;
-                const ratingCount = hasRating ? Math.floor(Math.random() * 50) + 1 : 0;
+                const hasRating = Number(p.total_avaliacoes) > 0;
+                const ratingVal = p.media_avaliacao;
+                const ratingCount = Number(p.total_avaliacoes);
 
                 const ratingHtml = hasRating 
                     ? `<div class="flex items-center text-xs font-bold text-yellow-500 bg-yellow-50 px-2 py-0.5 rounded-full border border-yellow-100">
@@ -264,27 +416,30 @@
                 return `
                 <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 flex flex-col h-full">
                     <div class="relative h-48 overflow-hidden bg-gray-100">
-                        <img src="${p.imagem}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+                        <img src="${escapeHtml(p.imagem)}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                                 onerror="this.src='https://via.placeholder.com/300?text=Sem+Imagem'">
                         <div class="absolute top-2 right-2 flex gap-2">
                              ${ratingHtml}
                         </div>
+                        <button onclick="toggleFavorite(${p.id})" class="absolute top-2 left-2 p-2 rounded-full bg-white/90 shadow text-red-500" title="Favoritar">
+                            <i data-lucide="heart" class="w-4 h-4 ${favoriteIds.has(p.id) ? 'fill-red-500' : ''}"></i>
+                        </button>
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 opacity-0 group-hover:opacity-100 transition duration-300">
                             <p class="text-white text-xs font-medium">Produtor #${p.produtor_id}</p>
                         </div>
                     </div>
                     <div class="p-5 flex flex-col flex-grow">
-                        <h3 class="font-bold text-lg text-gray-800 mb-1 leading-tight">${p.nome}</h3>
-                        <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">${p.descricao || 'Produto fresco e selecionado.'}</p>
+                        <h3 class="font-bold text-lg text-gray-800 mb-1 leading-tight">${escapeHtml(p.nome)}</h3>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">${escapeHtml(p.descricao || 'Produto fresco e selecionado.')}</p>
                         
                         <div class="flex items-end justify-between mt-auto pt-4 border-t border-gray-50">
                             <div>
                                 <span class="text-xs text-gray-400 block">Preço</span>
                                 <span class="text-green-700 font-bold text-xl">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</span>
                             </div>
-                            <button onclick='addToCart(${JSON.stringify(p)})' class="bg-green-100 text-green-700 p-2.5 rounded-full hover:bg-green-600 hover:text-white transition shadow-sm active:scale-95" title="Adicionar ao Carrinho">
+                            <div class="flex gap-2"><button onclick="startChat(${p.produtor_id})" class="bg-blue-50 text-blue-700 p-2.5 rounded-full hover:bg-blue-600 hover:text-white" title="Falar com produtor"><i data-lucide="message-circle" class="w-5 h-5"></i></button><button onclick="addToCartById(${p.id})" class="bg-green-100 text-green-700 p-2.5 rounded-full hover:bg-green-600 hover:text-white transition shadow-sm active:scale-95" title="Adicionar ao Carrinho">
                                 <i data-lucide="plus" class="w-5 h-5"></i>
-                            </button>
+                            </button></div>
                         </div>
                     </div>
                 </div>
@@ -302,7 +457,91 @@
             renderCatalog(filtered);
         }
 
+        async function loadRecipes() {
+            const container = document.getElementById('recipesContainer');
+            try {
+                const response = await apiFetch('/receitas');
+                const recipes = await response.json();
+                if (!recipes.length) {
+                    container.innerHTML = `<div class="xl:col-span-2 bg-white border border-dashed rounded-2xl py-14 text-center text-gray-400"><i data-lucide="notebook-pen" class="w-12 h-12 mx-auto mb-3"></i><p>Seja a primeira pessoa a compartilhar uma receita.</p></div>`;
+                    lucide.createIcons();
+                    return;
+                }
+                container.innerHTML = recipes.map(recipe => `
+                    <article class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                        <div class="h-2 bg-gradient-to-r from-orange-400 to-green-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div><h3 class="text-xl font-bold text-gray-800">${escapeHtml(recipe.titulo)}</h3><p class="text-xs text-green-700 mt-1">por ${escapeHtml(recipe.autor_nome)}</p></div>
+                                <span class="text-xs text-gray-400 whitespace-nowrap">${new Date(recipe.criado_em).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-5">${escapeHtml(recipe.descricao)}</p>
+                            ${recipe.produtos.length ? `<div class="flex flex-wrap gap-2 mb-4">${recipe.produtos.map(product => `<span class="bg-green-50 text-green-700 text-xs px-2 py-1 rounded-full">${escapeHtml(product.nome)}</span>`).join('')}</div>
+                                <button onclick='addRecipeProducts(${JSON.stringify(recipe.produtos.map(product => product.id))})' class="w-full mb-4 border border-green-200 text-green-700 py-2 rounded-lg text-sm font-bold hover:bg-green-50">Adicionar produtos ao carrinho</button>` : ''}
+                            <details class="group border-t pt-4">
+                                <summary class="cursor-pointer list-none flex items-center justify-between font-bold text-green-700">Ver receita completa <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition"></i></summary>
+                                <div class="mt-4 space-y-4 text-sm">
+                                    <div><h4 class="font-bold text-gray-800 mb-1">Ingredientes</h4><p class="text-gray-600 whitespace-pre-line">${escapeHtml(recipe.ingredientes)}</p></div>
+                                    <div><h4 class="font-bold text-gray-800 mb-1">Modo de preparo</h4><p class="text-gray-600 whitespace-pre-line">${escapeHtml(recipe.modo_preparo)}</p></div>
+                                </div>
+                            </details>
+                        </div>
+                    </article>`).join('');
+                lucide.createIcons();
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<p class="text-red-500">Não foi possível carregar as receitas.</p>';
+            }
+        }
+
+        async function submitRecipe(event) {
+            event.preventDefault();
+            const button = event.target.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.innerText = 'Publicando...';
+            try {
+                const response = await apiFetch('/receitas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        titulo: document.getElementById('recipeTitle').value,
+                        descricao: document.getElementById('recipeDescription').value,
+                        ingredientes: document.getElementById('recipeIngredients').value,
+                        modo_preparo: document.getElementById('recipePreparation').value,
+                        produto_ids: [...document.querySelectorAll('input[name="recipeProduct"]:checked')].map(input => Number(input.value))
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok) return alert(result.message || 'Erro ao publicar receita.');
+                event.target.reset();
+                await loadRecipes();
+                alert('Receita compartilhada com sucesso!');
+            } catch (error) {
+                alert('Erro de conexão ao publicar receita.');
+            } finally {
+                button.disabled = false;
+                button.innerText = 'Publicar receita';
+            }
+        }
+
+        function addRecipeProducts(productIds) {
+            let added = 0;
+            productIds.forEach(productId => {
+                const product = allProducts.find(item => item.id === productId);
+                if (product && product.quantidade > 0) {
+                    addToCart(product);
+                    added++;
+                }
+            });
+            alert(`${added} produto(s) da receita foram adicionados ao carrinho.`);
+        }
+
         // --- LÓGICA DO CARRINHO ---
+        function addToCartById(productId) {
+            const product = allProducts.find(item => item.id === productId);
+            if (product) addToCart(product);
+        }
+
         function addToCart(product) {
             const existing = cart.find(item => item.id === product.id);
             if (existing) {
@@ -339,6 +578,7 @@
                 tbody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-gray-400">Seu carrinho está vazio.<br>Vá até a Feira para adicionar itens.</td></tr>';
                 document.getElementById('cartTotal').innerText = 'R$ 0,00';
                 document.getElementById('cartSubtotal').innerText = 'R$ 0,00';
+                renderPaymentGroups();
                 return;
             }
 
@@ -349,8 +589,8 @@
                 return `
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-6 py-4 flex items-center gap-3">
-                        <img src="${item.imagem}" class="w-12 h-12 rounded object-cover bg-gray-100 border" onerror="this.src='https://via.placeholder.com/50'">
-                        <span class="font-medium text-sm text-gray-800">${item.nome}</span>
+                        <img src="${escapeHtml(item.imagem)}" class="w-12 h-12 rounded object-cover bg-gray-100 border" onerror="this.src='https://via.placeholder.com/50'">
+                        <span class="font-medium text-sm text-gray-800">${escapeHtml(item.nome)}</span>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-600">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</td>
                     <td class="px-6 py-4 text-sm font-bold text-gray-800">x${item.cartQtd}</td>
@@ -365,38 +605,252 @@
             const totalFmt = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('cartTotal').innerText = totalFmt;
             document.getElementById('cartSubtotal').innerText = totalFmt;
+            renderPaymentGroups();
             lucide.createIcons();
+        }
+
+        async function loadFavorites() {
+            const response = await apiFetch('/favoritos');
+            if (!response.ok) throw new Error((await response.json()).message || 'Erro ao carregar favoritos.');
+            favoriteIds = new Set((await response.json()).map(item => Number(item.produto_id)));
+        }
+
+        async function toggleFavorite(productId) {
+            productId = Number(productId);
+            const isFavorite = favoriteIds.has(productId);
+            const response = await apiFetch(`/favoritos/${productId}`, { method: isFavorite ? 'DELETE' : 'POST' });
+            const result = await response.json();
+            if (!response.ok) return alert(result.message || 'Não foi possível atualizar os favoritos.');
+            result.favorito ? favoriteIds.add(Number(result.produto_id)) : favoriteIds.delete(Number(result.produto_id));
+            renderCatalog(allProducts);
+            renderFavoriteProducts();
+        }
+
+        async function startChat(producerId) {
+            const response = await apiFetch('/chats', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ produtor_id: Number(producerId) })
+            });
+            const result = await response.json();
+            if (!response.ok) return alert(result.message || 'Não foi possível iniciar a conversa.');
+            await loadChats();
+            switchTab('chat');
+            await openChat(result.id);
+        }
+
+        async function loadChats() {
+            const response = await apiFetch('/chats');
+            if (!response.ok) return;
+            const chats = await response.json();
+            const list = document.getElementById('chatList');
+            list.innerHTML = chats.length ? chats.map(chat => `<button onclick="openChat(${chat.id})" class="w-full text-left p-3 rounded-lg ${activeConversationId === chat.id ? 'bg-green-100' : 'bg-white hover:bg-green-50'} border"><strong class="text-sm">${escapeHtml(chat.contato_nome)}</strong><span class="block text-xs text-gray-500 truncate mt-1">${escapeHtml(chat.ultima_mensagem || 'Nova conversa')}</span></button>`).join('') : '<p class="text-sm text-gray-400 p-3">Você ainda não iniciou conversas.</p>';
+        }
+
+        async function openChat(chatId) {
+            activeConversationId = Number(chatId);
+            const response = await apiFetch(`/chats/${activeConversationId}/mensagens`);
+            if (!response.ok) return;
+            const messages = await response.json();
+            const selected = [...document.querySelectorAll('#chatList button')].find(button => button.getAttribute('onclick') === `openChat(${activeConversationId})`);
+            document.getElementById('chatHeader').innerText = selected?.querySelector('strong')?.innerText || 'Conversa';
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('chatSendButton').disabled = false;
+            document.getElementById('chatMessages').innerHTML = messages.length ? messages.map(message => `<div class="flex ${Number(message.remetente_id) === Number(currentUser.id) ? 'justify-end' : 'justify-start'}"><div class="max-w-[78%] rounded-2xl px-4 py-2 ${Number(message.remetente_id) === Number(currentUser.id) ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800'}"><p class="text-sm whitespace-pre-wrap">${escapeHtml(message.texto)}</p><small class="block mt-1 opacity-70">${new Date(message.criado_em).toLocaleString('pt-BR')}</small></div></div>`).join('') : '<p class="text-center text-gray-400 mt-20">Envie a primeira mensagem.</p>';
+            await loadChats();
+            const box = document.getElementById('chatMessages'); box.scrollTop = box.scrollHeight;
+            lucide.createIcons();
+        }
+
+        async function sendChatMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('chatInput');
+            if (!activeConversationId || !input.value.trim()) return;
+            const response = await apiFetch(`/chats/${activeConversationId}/mensagens`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texto: input.value }) });
+            const result = await response.json();
+            if (!response.ok) return alert(result.message || 'Não foi possível enviar a mensagem.');
+            input.value = '';
+            await openChat(activeConversationId);
+        }
+
+        setInterval(() => {
+            if (activeConversationId && document.getElementById('tab-chat').classList.contains('active')) {
+                openChat(activeConversationId);
+            }
+        }, 5000);
+
+        function renderFavoriteProducts() {
+            const grid = document.getElementById('favoritesGrid');
+            const favorites = allProducts.filter(product => favoriteIds.has(product.id));
+            if (!favorites.length) {
+                grid.innerHTML = '<div class="col-span-full bg-white border border-dashed rounded-xl p-12 text-center text-gray-400">Clique no coração de um produto para salvá-lo aqui.</div>';
+                return;
+            }
+            grid.innerHTML = favorites.map(product => `
+                <article class="bg-white rounded-xl border shadow-sm overflow-hidden">
+                    <img src="${escapeHtml(product.imagem)}" class="w-full h-40 object-cover" onerror="this.src='https://via.placeholder.com/300?text=Produto'">
+                    <div class="p-4"><h3 class="font-bold">${escapeHtml(product.nome)}</h3><p class="text-green-700 font-bold mt-2">R$ ${Number(product.preco).toFixed(2).replace('.', ',')}</p>
+                    <div class="flex gap-2 mt-4"><button onclick="addToCartById(${product.id})" class="flex-1 bg-green-600 text-white rounded-lg py-2 font-bold">Adicionar</button><button onclick="toggleFavorite(${product.id})" class="border p-2 rounded-lg text-red-500"><i data-lucide="heart" class="fill-red-500"></i></button></div></div>
+                </article>`).join('');
+            lucide.createIcons();
+        }
+
+        async function loadNotifications() {
+            const response = await apiFetch('/cliente/notificacoes');
+            if (!response.ok) return;
+            const notifications = await response.json();
+            if (!notifications.length) return;
+            const box = document.getElementById('notificationsBox');
+            box.classList.remove('hidden');
+            box.innerHTML = `<div class="flex items-center gap-2 font-bold text-blue-800 mb-2"><i data-lucide="bell" class="w-5 h-5"></i> Atualizações recentes</div>
+                <div class="flex gap-2 overflow-x-auto">${notifications.slice(0, 4).map(item => `<button onclick="switchTab('pedidos')" class="text-left min-w-[220px] bg-blue-50 rounded-lg p-3 text-sm"><strong>Pedido #${item.id}</strong><br><span class="text-gray-600">${escapeHtml(item.produtor_nome)}: ${escapeHtml(item.status)}</span></button>`).join('')}</div>`;
+            lucide.createIcons();
+        }
+
+        function renderRecipeProductOptions() {
+            const container = document.getElementById('recipeProductOptions');
+            container.innerHTML = allProducts.map(product => `<label class="flex items-center gap-2"><input type="checkbox" name="recipeProduct" value="${product.id}" class="accent-green-600"> <span>${escapeHtml(product.nome)}</span></label>`).join('') || '<span class="text-gray-400">Nenhum produto disponível.</span>';
+        }
+
+        function groupCartByProducer() {
+            return Object.values(cart.reduce((groups, item) => {
+                if (!groups[item.produtor_id]) {
+                    groups[item.produtor_id] = {
+                        produtorId: item.produtor_id,
+                        produtorNome: item.produtor_nome || `Produtor #${item.produtor_id}`,
+                        aceitaPix: Boolean(item.aceita_pix),
+                        aceitaDinheiro: Boolean(item.aceita_dinheiro),
+                        chavePix: item.chave_pix || '',
+                        total: 0,
+                        itens: []
+                    };
+                }
+                groups[item.produtor_id].itens.push(item);
+                groups[item.produtor_id].total += item.preco * item.cartQtd;
+                return groups;
+            }, {}));
+        }
+
+        function renderPaymentGroups() {
+            const container = document.getElementById('paymentGroups');
+            const groups = groupCartByProducer();
+            if (!groups.length) {
+                container.innerHTML = '<p class="text-xs text-gray-500">Adicione produtos para escolher os pagamentos.</p>';
+                return;
+            }
+
+            container.innerHTML = groups.map(group => `
+                <section class="border rounded-xl p-3 bg-gray-50" data-producer-payment="${group.produtorId}">
+                    <div class="flex justify-between gap-2 mb-3">
+                        <strong class="text-sm">${escapeHtml(group.produtorNome)}</strong>
+                        <strong class="text-sm text-green-700">${group.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+                    </div>
+                    ${!group.aceitaPix && !group.aceitaDinheiro ? '<p class="text-xs text-red-600 bg-red-50 p-2 rounded">Este produtor ainda não configurou pagamento.</p>' : `
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 text-sm ${group.aceitaPix ? '' : 'opacity-40'}">
+                                <input type="radio" name="payment-${group.produtorId}" value="pix" onchange="updateProducerPaymentDetails(${group.produtorId})" ${group.aceitaPix ? '' : 'disabled'}> PIX
+                            </label>
+                            <label class="flex items-center gap-2 text-sm ${group.aceitaDinheiro ? '' : 'opacity-40'}">
+                                <input type="radio" name="payment-${group.produtorId}" value="dinheiro" onchange="updateProducerPaymentDetails(${group.produtorId})" ${group.aceitaDinheiro ? '' : 'disabled'}> Dinheiro
+                            </label>
+                            <div id="pix-details-${group.produtorId}" class="hidden bg-blue-50 text-blue-900 p-2 rounded text-xs space-y-2">
+                                <p>Chave PIX: <strong>${escapeHtml(group.chavePix)}</strong></p>
+                                <label class="block font-bold">Comprovante PIX</label>
+                                <input id="receipt-${group.produtorId}" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" class="w-full bg-white border rounded p-1">
+                            </div>
+                            <div id="cash-details-${group.produtorId}" class="hidden space-y-2 text-xs">
+                                <label class="flex items-center gap-2"><input id="needs-change-${group.produtorId}" type="checkbox" onchange="toggleProducerChange(${group.produtorId})"> Preciso de troco</label>
+                                <input id="change-${group.produtorId}" type="number" min="0" step="0.01" placeholder="Troco para quanto?" class="hidden w-full p-2 border rounded">
+                            </div>
+                        </div>`}
+                </section>
+            `).join('');
+        }
+
+        function updateProducerPaymentDetails(producerId) {
+            const method = document.querySelector(`input[name="payment-${producerId}"]:checked`)?.value;
+            document.getElementById(`pix-details-${producerId}`).classList.toggle('hidden', method !== 'pix');
+            document.getElementById(`cash-details-${producerId}`).classList.toggle('hidden', method !== 'dinheiro');
+        }
+
+        function toggleProducerChange(producerId) {
+            const checked = document.getElementById(`needs-change-${producerId}`).checked;
+            document.getElementById(`change-${producerId}`).classList.toggle('hidden', !checked);
         }
 
         async function checkout() {
             if (cart.length === 0) return alert('Seu carrinho está vazio!');
+            const address = getDeliveryAddress();
+            if (!isAddressValid(address)) {
+                document.getElementById('addressStatus').innerText = 'Preencha o endereço completo antes de finalizar.';
+                document.getElementById('addressStatus').className = 'text-xs text-red-600 font-bold';
+                return alert('Preencha CEP, rua, número, bairro, cidade e estado para continuar.');
+            }
+            const addressResponse = await apiFetch('/me/endereco', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(address)
+            });
+            const addressResult = await addressResponse.json();
+            if (!addressResponse.ok) return alert(addressResult.message || 'Não foi possível salvar o endereço.');
+            const groups = groupCartByProducer();
+            const payments = [];
+            const receipts = new Map();
+            for (const group of groups) {
+                if (!group.aceitaPix && !group.aceitaDinheiro) return alert(`${group.produtorNome} ainda não configurou pagamento.`);
+                const method = document.querySelector(`input[name="payment-${group.produtorId}"]:checked`)?.value;
+                if (!method) return alert(`Escolha o pagamento de ${group.produtorNome}.`);
+                const needsChange = method === 'dinheiro' && document.getElementById(`needs-change-${group.produtorId}`).checked;
+                const changeFor = document.getElementById(`change-${group.produtorId}`).value;
+                if (needsChange && !changeFor) return alert(`Informe o troco para ${group.produtorNome}.`);
+                if (method === 'pix') {
+                    const receipt = document.getElementById(`receipt-${group.produtorId}`).files[0];
+                    if (!receipt) return alert(`Envie o comprovante PIX de ${group.produtorNome}.`);
+                    receipts.set(group.produtorId, receipt);
+                }
+                payments.push({
+                    produtor_id: group.produtorId,
+                    forma_pagamento: method,
+                    precisa_troco: needsChange,
+                    troco_para: changeFor || null
+                });
+            }
             if (!confirm('Deseja finalizar a compra agora?')) return;
 
             const payload = {
-                cliente_id: currentUser.id,
+                pagamentos: payments,
                 itens: cart.map(i => ({
                     produto_id: i.id,
-                    quantidade: i.cartQtd,
-                    preco_unitario: i.preco
+                    quantidade: i.cartQtd
                 }))
             };
 
             try {
-                const res = await fetch(`${API_URL}/pedidos`, {
+                const res = await apiFetch('/compras', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 
                 if (res.ok) {
-                    alert('Pedido realizado com sucesso! Acompanhe na aba "Meus Pedidos".');
+                    const result = await res.json();
+                    const receiptErrors = [];
+                    for (const order of result.pedidos.filter(item => item.formaPagamento === 'pix')) {
+                        const receiptData = new FormData();
+                        receiptData.append('comprovante', receipts.get(order.produtorId));
+                        const receiptResponse = await apiFetch(`/pedidos/${order.pedidoId}/comprovante`, { method: 'POST', body: receiptData });
+                        if (!receiptResponse.ok) {
+                            const receiptError = await receiptResponse.json();
+                            receiptErrors.push(receiptError.message);
+                        }
+                    }
+                    alert(receiptErrors.length
+                        ? `Compra criada, mas houve erro em comprovantes: ${receiptErrors.join('; ')}`
+                        : `Compra #${result.compraId} criada com ${result.pedidos.length} pedido(s), um para cada produtor.`);
                     cart = [];
                     updateCartUI();
                     loadOrders(); 
                     switchTab('pedidos'); 
                 } else {
                     const err = await res.json();
-                    alert('Erro ao processar pedido: ' + (err.msg || 'Erro desconhecido'));
+                    alert('Erro ao processar pedido: ' + (err.message || 'Erro desconhecido'));
                 }
             } catch (err) {
                 console.error(err);
@@ -407,7 +861,7 @@
         // --- MEUS PEDIDOS & AVALIAÇÃO ---
         async function loadOrders() {
             try {
-                const res = await fetch(`${API_URL}/consumidor/${currentUser.id}/pedidos`);
+                const res = await apiFetch(`/consumidor/${currentUser.id}/pedidos`);
                 const rows = await res.json();
                 const container = document.getElementById('ordersContainer');
                 
@@ -426,8 +880,19 @@
                     if (!ordersMap[r.pedido_id]) {
                         ordersMap[r.pedido_id] = {
                             id: r.pedido_id,
+                            compraId: r.compra_id,
                             data: r.data_pedido,
                             status: r.status,
+                            formaPagamento: r.forma_pagamento,
+                            trocoPara: r.troco_para,
+                            chavePix: r.chave_pix,
+                            comprovante: r.comprovante,
+                            produtorNome: r.produtor_nome,
+                            endereco: {
+                                cep: r.entrega_cep, rua: r.entrega_rua, numero: r.entrega_numero,
+                                complemento: r.entrega_complemento, bairro: r.entrega_bairro,
+                                cidade: r.entrega_cidade, estado: r.entrega_estado
+                            },
                             itens: []
                         };
                     }
@@ -439,25 +904,41 @@
                         <div class="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
                             <div>
                                 <span class="font-bold text-gray-800 text-sm">Pedido #${order.id}</span>
+                                ${order.compraId ? `<span class="text-xs text-green-700 ml-2">Compra #${order.compraId}</span>` : ''}
                                 <span class="text-xs text-gray-500 ml-2">em ${new Date(order.data).toLocaleDateString()}</span>
                             </div>
-                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-bold border border-yellow-200 shadow-sm">${order.status}</span>
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-bold border border-yellow-200 shadow-sm">${escapeHtml(order.status)}</span>
                         </div>
                         <div class="p-4 space-y-4">
+                            <div class="text-sm bg-gray-50 rounded-lg p-3">
+                                <strong>Produtor:</strong> ${escapeHtml(order.produtorNome)}<br>
+                                <strong>Pagamento:</strong> ${escapeHtml((order.formaPagamento || '').toUpperCase())}
+                                ${order.trocoPara ? `<br><strong>Troco para:</strong> R$ ${Number(order.trocoPara).toFixed(2).replace('.', ',')}` : ''}
+                                ${order.chavePix ? `<br><strong>Chave PIX:</strong> ${escapeHtml(order.chavePix)}` : ''}
+                                ${order.endereco.rua ? `<div class="border-t mt-3 pt-3"><strong>Entrega:</strong><br>${escapeHtml(order.endereco.rua)}, ${escapeHtml(order.endereco.numero)}${order.endereco.complemento ? ` - ${escapeHtml(order.endereco.complemento)}` : ''}<br>${escapeHtml(order.endereco.bairro)} - ${escapeHtml(order.endereco.cidade)}/${escapeHtml(order.endereco.estado)} · CEP ${escapeHtml(order.endereco.cep)}</div>` : ''}
+                            </div>
                             ${order.itens.map(item => `
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-4">
-                                        <img src="${item.imagem}" class="w-12 h-12 rounded-lg object-cover bg-gray-100 border border-gray-200" onerror="this.src='https://via.placeholder.com/50'">
+                                        <img src="${escapeHtml(item.imagem)}" class="w-12 h-12 rounded-lg object-cover bg-gray-100 border border-gray-200" onerror="this.src='https://via.placeholder.com/50'">
                                         <div>
-                                            <p class="text-sm font-bold text-gray-800">${item.produto_nome}</p>
+                                            <p class="text-sm font-bold text-gray-800">${escapeHtml(item.produto_nome)}</p>
                                             <p class="text-xs text-gray-500">${item.quantidade}x R$ ${item.preco_unitario}</p>
                                         </div>
                                     </div>
-                                    <button onclick="openReviewModal(${item.produto_id}, '${item.produto_nome}')" class="text-xs font-medium text-blue-600 hover:text-blue-800 border border-blue-100 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1">
+                                    <button onclick="openReviewModal(${item.produto_id})" class="text-xs font-medium text-blue-600 hover:text-blue-800 border border-blue-100 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1">
                                         <i data-lucide="star" class="w-3 h-3"></i> Avaliar
                                     </button>
                                 </div>
                             `).join('')}
+                            ${order.formaPagamento === 'pix' && order.status !== 'Aceito' ? `
+                                <div class="border-t pt-4">
+                                    <label class="block text-sm font-bold mb-2">${order.comprovante ? 'Substituir comprovante' : 'Enviar comprovante PIX'}</label>
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <input id="receipt-${order.id}" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" class="text-sm border rounded-lg p-2 flex-1">
+                                        <button onclick="uploadReceipt(${order.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Enviar</button>
+                                    </div>
+                                </div>` : ''}
                         </div>
                     </div>
                 `).join('');
@@ -467,10 +948,56 @@
             } catch(e) { console.error(e); }
         }
 
+        function getDeliveryAddress() {
+            return {
+                cep: document.getElementById('deliveryCep').value,
+                rua: document.getElementById('deliveryRua').value,
+                numero: document.getElementById('deliveryNumero').value,
+                complemento: document.getElementById('deliveryComplemento').value,
+                bairro: document.getElementById('deliveryBairro').value,
+                cidade: document.getElementById('deliveryCidade').value,
+                estado: document.getElementById('deliveryEstado').value
+            };
+        }
+
+        function isAddressValid(address) {
+            return address.cep.replace(/\D/g, '').length === 8 && address.rua.trim() && address.numero.trim()
+                && address.bairro.trim() && address.cidade.trim() && address.estado.trim().length === 2;
+        }
+
+        async function loadDeliveryAddress() {
+            const response = await apiFetch('/me/endereco');
+            if (!response.ok) return;
+            const address = await response.json();
+            const fields = { deliveryCep: 'cep', deliveryRua: 'rua', deliveryNumero: 'numero', deliveryComplemento: 'complemento', deliveryBairro: 'bairro', deliveryCidade: 'cidade', deliveryEstado: 'estado' };
+            Object.entries(fields).forEach(([id, key]) => document.getElementById(id).value = address[key] || '');
+            const status = document.getElementById('addressStatus');
+            if (isAddressValid(address)) {
+                status.innerText = 'Endereço completo. Você pode alterá-lo antes da compra.';
+                status.className = 'text-xs text-green-600 font-bold';
+            } else {
+                status.innerText = 'Complete o endereço para poder finalizar o pedido.';
+                status.className = 'text-xs text-orange-600 font-bold';
+            }
+        }
+
+        async function uploadReceipt(orderId) {
+            const file = document.getElementById(`receipt-${orderId}`).files[0];
+            if (!file) return alert('Selecione o comprovante.');
+            const formData = new FormData();
+            formData.append('comprovante', file);
+            const res = await apiFetch(`/pedidos/${orderId}/comprovante`, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) return alert(data.message || 'Erro ao enviar comprovante.');
+            alert('Comprovante enviado ao produtor.');
+            await loadOrders();
+        }
+
         // --- FUNÇÕES DO MODAL ---
-        function openReviewModal(prodId, prodName) {
+        function openReviewModal(prodId) {
+            const product = allProducts.find(item => item.id === prodId);
             document.getElementById('reviewProdId').value = prodId;
-            document.getElementById('reviewProductName').innerText = prodName;
+            document.getElementById('reviewProductName').innerText = product ? product.nome : 'Produto';
             document.getElementById('reviewComment').value = '';
             setRating(5); // Reset stars
             document.getElementById('reviewModal').classList.remove('hidden');
@@ -504,13 +1031,12 @@
 
             const data = {
                 produto_id: document.getElementById('reviewProdId').value,
-                cliente_id: currentUser.id,
                 nota: document.getElementById('reviewNota').value,
                 comentario: document.getElementById('reviewComment').value
             };
 
             try {
-                const res = await fetch(`${API_URL}/avaliacoes`, {
+                const res = await apiFetch('/avaliacoes', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)

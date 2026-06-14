@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+organolife.db
+public/uploads/*
+!public/uploads/.gitkeep
+*.db-shm
+*.db-wal
+npm-debug.log*
