@@ -20,6 +20,10 @@ $env:DATABASE_URL="postgresql://usuario:senha@host:5432/organolife?sslmode=requi
 
 Use a URL fornecida pelo Neon, Supabase, Railway ou outro provedor PostgreSQL.
 
+Para manter imagens de produtos e comprovantes em hospedagens com disco temporario,
+configure tambem `CLOUDINARY_URL`. Sem essa variavel, os arquivos continuam sendo
+salvos em `public/uploads`, o que e adequado apenas para desenvolvimento local.
+
 ## Estrutura
 
 - `server.js`: inicializacao do servidor.

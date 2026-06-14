@@ -3,9 +3,14 @@ const path = require('path');
 const multer = require('multer');
 const { config } = require('../config');
 
+let cloudinary = null;
+if (process.env.CLOUDINARY_URL) {
+    ({ v2: cloudinary } = require('cloudinary'));
+}
+
 fs.mkdirSync(config.uploadDir, { recursive: true });
 
-const storage = multer.diskStorage({
+const diskStorage = multer.diskStorage({
     destination: (_req, _file, callback) => callback(null, config.uploadDir),
     filename: (_req, file, callback) => {
         const extension = path.extname(file.originalname).toLowerCase();
@@ -13,6 +18,8 @@ const storage = multer.diskStorage({
         callback(null, uniqueName);
     }
 });
+
+const storage = cloudinary ? multer.memoryStorage() : diskStorage;
 
 const upload = multer({
     storage,
@@ -37,4 +44,20 @@ const receiptUpload = multer({
     }
 });
 
-module.exports = { upload, receiptUpload };
+function uploadBuffer(file, folder, resourceType) {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder, resource_type: resourceType },
+            (error, result) => error ? reject(error) : resolve(result.secure_url)
+        );
+        stream.end(file.buffer);
+    });
+}
+
+async function getUploadedFileUrl(file, folder, resourceType = 'image') {
+    if (!file) return null;
+    if (cloudinary) return uploadBuffer(file, folder, resourceType);
+    return `/uploads/${file.filename}`;
+}
+
+module.exports = { upload, receiptUpload, getUploadedFileUrl };

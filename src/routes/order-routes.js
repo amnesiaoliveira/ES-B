@@ -1,7 +1,7 @@
 const express = require('express');
 const orderService = require('../services/order-service');
 const { authenticate, requireProfile, requireOwnId } = require('../middlewares/auth');
-const { receiptUpload } = require('../middlewares/upload');
+const { receiptUpload, getUploadedFileUrl } = require('../middlewares/upload');
 const { asyncHandler } = require('../utils/async-handler');
 const { HttpError } = require('../utils/http-error');
 
@@ -27,7 +27,8 @@ router.get('/produtor/:id/pedidos', authenticate, requireProfile('produtor'), re
 
 router.post('/pedidos/:id/comprovante', authenticate, requireProfile('cliente'), receiptUpload.single('comprovante'), asyncHandler(async (req, res) => {
     if (!req.file) throw new HttpError(400, 'Selecione o arquivo do comprovante.');
-    await orderService.attachReceipt(req.user.id, req.params.id, `/uploads/${req.file.filename}`);
+    const receiptUrl = await getUploadedFileUrl(req.file, 'organolife/comprovantes', 'auto');
+    await orderService.attachReceipt(req.user.id, req.params.id, receiptUrl);
     res.json({ success: true, message: 'Comprovante enviado.' });
 }));
 
